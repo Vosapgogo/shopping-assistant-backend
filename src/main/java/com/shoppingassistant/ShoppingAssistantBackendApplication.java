@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ShoppingAssistantBackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ShoppingAssistantBackendApplication.class, args);
+        SpringApplication.run(ShoppingAssistantBackendApplication.class, args);
 	}
 
 }
