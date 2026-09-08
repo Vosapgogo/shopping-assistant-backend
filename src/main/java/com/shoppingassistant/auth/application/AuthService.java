@@ -1,32 +1,42 @@
 package com.shoppingassistant.auth.application;
 
 import com.shoppingassistant.auth.domain.User;
+import com.shoppingassistant.auth.infrastructure.JwtService;
 import com.shoppingassistant.auth.infrastructure.UserRepository;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public User register(String name, String email, String rawPassword) {
-        // Check if email already exists
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        // Hash the password using BCrypt
         String hashedPassword = passwordEncoder.encode(rawPassword);
-
-        // Create and save the new user with name
         User user = new User(name, email, hashedPassword);
         return userRepository.save(user);
+    }
+
+    public String login(String email, String rawPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        return jwtService.generateToken(user.getEmail());
     }
 }

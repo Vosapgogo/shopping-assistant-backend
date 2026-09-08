@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,12 +24,33 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
-            // Pass the name to the service
             User user = authService.register(request.getName(), request.getEmail(), request.getPassword());
             return ResponseEntity.status(HttpStatus.CREATED).body(new RegisterResponse(user.getId(), user.getName(), user.getEmail()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(e.getMessage()));
         }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        try {
+            String token = authService.login(request.getEmail(), request.getPassword());
+            return ResponseEntity.ok(new LoginResponse(token));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    // Without this, a failed @Valid check (e.g. password too short) returns
+    // Spring's default validation error JSON instead of the app's ErrorResponse
+    // shape, which is inconsistent for API consumers (including the Android app).
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .orElse("Validation failed");
+        return ResponseEntity.badRequest().body(new ErrorResponse(message));
     }
 
     // DTO for incoming registration request
@@ -55,7 +77,7 @@ public class AuthController {
     // DTO for successful response
     public static class RegisterResponse {
         private Long id;
-        private String name; 
+        private String name;
         private String email;
 
         public RegisterResponse(Long id, String name, String email) {
@@ -75,5 +97,26 @@ public class AuthController {
 
         public ErrorResponse(String error) { this.error = error; }
         public String getError() { return error; }
+    }
+
+    public static class LoginRequest {
+        @Email
+        @NotBlank
+        private String email;
+
+        @NotBlank
+        private String password;
+
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+    }
+
+    public static class LoginResponse {
+        private String token;
+
+        public LoginResponse(String token) { this.token = token; }
+        public String getToken() { return token; }
     }
 }
