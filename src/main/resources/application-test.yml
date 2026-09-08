@@ -3,6 +3,9 @@ spring:
     hibernate:
       ddl-auto: update
 
+jwt:
+  secret: "DummySecretKeyForTestingOnlyNeedsToBeAtLeast32BytesLong!"
+
 logging:
   level:
     com.shoppingassistant: INFO

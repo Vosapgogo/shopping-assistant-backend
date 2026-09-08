@@ -4,6 +4,9 @@ spring:
       ddl-auto: update
     show-sql: true
 
+jwt:
+  secret: "ukpIHFhV/Dkjvut1pONac83CL9RynSmDRZ/SkV2+xJo="
+
 logging:
   level:
     com.shoppingassistant: DEBUG
