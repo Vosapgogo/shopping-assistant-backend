@@ -9,8 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.shoppingassistant.auth.infrastructure.JwtService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 @WebMvcTest(HealthController.class)
 class HealthControllerTest {
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @Autowired
     private MockMvc mockMvc;
