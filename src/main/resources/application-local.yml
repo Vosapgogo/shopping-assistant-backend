@@ -1,11 +1,9 @@
 spring:
   jpa:
-    hibernate:
-      ddl-auto: update
     show-sql: true
 
 jwt:
-  secret: "ukpIHFhV/Dkjvut1pONac83CL9RynSmDRZ/SkV2+xJo="
+  secret: ${JWT_SECRET:DummySecretKeyForTestingOnlyNeedsToBeAtLeast32BytesLong!}
 
 logging:
   level:
