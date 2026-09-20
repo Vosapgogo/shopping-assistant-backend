@@ -31,10 +31,11 @@ public class AuthService {
 
     public String login(String email, String rawPassword) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+                .orElseThrow(() -> new AuthException(AuthException.Code.EMAIL_NOT_FOUND,
+                        "No account found with this email"));
 
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid email or password");
+            throw new AuthException(AuthException.Code.WRONG_PASSWORD, "Incorrect password");
         }
 
         return jwtService.generateToken(user.getEmail());

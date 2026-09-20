@@ -1,5 +1,6 @@
 package com.shoppingassistant.auth.api;
 
+import com.shoppingassistant.auth.application.AuthException;
 import com.shoppingassistant.auth.application.AuthService;
 import com.shoppingassistant.auth.domain.User;
 import jakarta.validation.Valid;
@@ -36,8 +37,9 @@ public class AuthController {
         try {
             String token = authService.login(request.getEmail(), request.getPassword());
             return ResponseEntity.ok(new LoginResponse(token));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+        } catch (AuthException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse(e.getCode().name(), e.getMessage()));
         }
     }
 
@@ -93,9 +95,15 @@ public class AuthController {
 
     // DTO for error response
     public static class ErrorResponse {
+        private String code;
         private String error;
 
-        public ErrorResponse(String error) { this.error = error; }
+        public ErrorResponse(String error) { this(null, error); }
+        public ErrorResponse(String code, String error) {
+            this.code = code;
+            this.error = error;
+        }
+        public String getCode() { return code; }
         public String getError() { return error; }
     }
 
